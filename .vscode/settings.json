@@ -1,0 +1,9 @@
+{
+	"editor.tabSize": 2,
+	"editor.insertSpaces": true,
+	"editor.detectIndentation": false,
+	"typescript.format.enable": true,
+	"typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces": true,
+	"editor.defaultFormatter": "biomejs.biome",
+	"editor.formatOnSave": true
+}
