@@ -3,10 +3,55 @@ import type { StandardSchemaV1 } from "./standardschema";
 import type { AnyAPI, Service } from "./types";
 import type { Meta } from "./meta";
 
-export type Handler<I, O, Context = unknown> = (
-	param: I,
-	context: Context,
-) => Promise<O> | O;
+export interface Context<I = unknown> extends Record<string, unknown> {
+	readonly data: Awaited<I>;
+}
+
+export function createCallerContext<T>(
+	data: T,
+	...extended: Record<string, unknown>[]
+): Context<T> {
+	const callerContext = {} as Context<T>;
+	Object.defineProperty(callerContext, "data", {
+		value: data,
+		writable: false,
+		configurable: false,
+		enumerable: true,
+	});
+
+	for (const [key, value] of Object.entries(extended)) {
+		Object.assign(callerContext, { [key]: value });
+	}
+
+	return callerContext;
+}
+
+export type RequestHandler = (
+	def: AnyImplementation,
+	rawContext: unknown,
+) => Promise<unknown>;
+
+export function createRequestHandler(handler: RequestHandler): RequestHandler {
+	return handler;
+}
+
+export function createCaller(
+	def: AnyImplementation,
+	implementation: RequestHandler,
+): (rawContext: Record<string, unknown>) => Promise<unknown> {
+	return (rawContext) => implementation(def, rawContext);
+}
+
+export function createRouteCaller<S extends Service, K extends keyof S>(
+	route: Route<S>,
+	path: K,
+	handler: RequestHandler,
+): (rawContext: Record<string, unknown>) => Promise<unknown> {
+	const implementation = route.implementations[path] as AnyImplementation;
+	return createCaller(implementation, handler);
+}
+
+export type Handler<I, O> = (param: Context<I>) => Promise<O> | O;
 
 export type Implementation<S extends Service, P extends keyof S> = {
 	definition: S[P];
@@ -17,6 +62,8 @@ export type Implementation<S extends Service, P extends keyof S> = {
 	>;
 	meta: Meta<symbol, unknown>[];
 };
+
+export type AnyImplementation = Implementation<Service, keyof Service>;
 
 export type Route<S extends Service> = {
 	service: S;
@@ -105,5 +152,3 @@ export function route<
 		}),
 	) as unknown as Executor<Route<S>>;
 }
-
-export type Integrator = (...routes: AnyRoute[]) => Promise<() => void>;

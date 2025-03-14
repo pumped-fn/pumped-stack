@@ -17,6 +17,7 @@ export const clientProvider =
 		key: K,
 		...params: I extends undefined ? [] : [I]
 	): Promise<StandardSchemaV1.InferOutput<S[K]["output"]>> => {
+		console.log(params);
 		return await requestBuilder(key as string, def[key], params.at(0));
 	};
 

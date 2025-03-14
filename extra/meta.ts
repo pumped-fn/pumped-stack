@@ -1,7 +1,5 @@
 import { validateInput, type StandardSchemaV1 } from "./standardschema";
 
-export type Context = Record<symbol, unknown>;
-
 export interface Meta<S extends symbol, V> {
 	readonly key: S;
 	readonly schema: StandardSchemaV1<V>;

@@ -1,28 +1,51 @@
 import { provide, type Executor } from "@pumped-fn/core";
 import type { BunRequest } from "bun";
-import type { Context } from "../meta";
 import { getMethod, getPrefix } from "../meta/http";
-import type { Route } from "../server";
+import {
+	createCaller,
+	createCallerContext,
+	createRequestHandler,
+	type Route,
+} from "../server";
 import { validateInput } from "../standardschema";
 
 export const contextSymbol = Symbol.for("@pumped-fn.context.bun");
 
-export interface BunContext extends Context {
+export type BunContext = {
 	[contextSymbol]: {
-		request: Request;
+		request: BunRequest;
 		bunRequest: BunRequest;
 	};
-}
+};
 
 export const isBunContext = (ctx: unknown): ctx is BunContext => {
 	return typeof ctx === "object" && ctx !== null && contextSymbol in ctx;
 };
 
-export const bunContext = (bunContext: BunContext[typeof contextSymbol]) => {
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+export function createBunContext(request: BunRequest<any>): BunContext {
 	return {
-		[contextSymbol]: bunContext,
+		[contextSymbol]: { request, bunRequest: request },
 	};
-};
+}
+
+export const bunRequestHandler = createRequestHandler(
+	async ({ definition, handler }, rawContext) => {
+		if (!isBunContext(rawContext)) {
+			throw new Error("Invalid context");
+		}
+
+		const { request } = rawContext[contextSymbol];
+
+		const body = request.body ? await request.json() : undefined;
+
+		const data = await validateInput(definition.input, body);
+		const callerContext = createCallerContext(data);
+
+		const result = await handler(callerContext);
+		return await validateInput(definition.output, result);
+	},
+);
 
 type Method = "GET" | "POST" | "PUT" | "DELETE";
 
@@ -53,20 +76,9 @@ export const toBunHandlers = (
 				handlers[path] = bunRoute;
 
 				bunRoute[routeMethod] = async (req: BunRequest) => {
-					let body: unknown = undefined;
-
-					if (req.body !== null && req.body.length > 0) {
-						body = req.json();
-					}
-
-					const param = await validateInput(definition.input, body);
-
-					const context = bunContext({
-						request: req,
-						bunRequest: req,
-					});
-
-					const result = await handler(param, context);
+					const context = createBunContext(req);
+					const caller = createCaller(implementations[key], bunRequestHandler);
+					const result = await caller(context);
 
 					if (result) {
 						const response = new Response(JSON.stringify(result), {

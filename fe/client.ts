@@ -19,7 +19,7 @@ const fetcher = up(fetch, () => ({
 const upfetchRequestBuilder = defineRequestBuilder(
 	async (path, def, params) => {
 		const validatedParam = await validateInput(def.input, params);
-
+		console.log("request", path, def, params, validatedParam);
 		const response = await fetcher("", {
 			body: validatedParam ?? undefined,
 			headers: {

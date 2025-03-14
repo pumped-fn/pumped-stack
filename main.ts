@@ -1,13 +1,12 @@
-import { createScope, resource, resolve } from "@pumped-fn/core";
+import { createScope, resource, resolve, resolveOnce } from "@pumped-fn/core";
 import { serve } from "bun";
 import { handlers } from "./be";
-import { validateInput } from "./extra";
-import { bunContext, toBunHandlers } from "./extra/bun";
+import { bunRequestHandler, toBunHandlers } from "./extra/bun";
 import App from "./fe/index.html";
-import { actions } from "./rpc";
+import { createBunContext } from "./extra/bun";
+import { createRouteCaller } from "./extra/server";
 
 const scope = createScope();
-
 const startServer = resource(
 	[toBunHandlers(handlers)],
 	async ([bunHandlers]) => {
@@ -16,37 +15,30 @@ const startServer = resource(
 			development: process.env.NODE_ENV !== "prod",
 			routes: {
 				"/*": App,
-				...bunHandlers,
 				"/rpc": {
 					POST: async (req) => {
-						const context = bunContext({
-							request: req,
-							bunRequest: req,
-						});
+						const resolvedHandlers = await resolveOnce(scope, handlers);
 
-						const handlersContainer = await resolve(scope, handlers);
+						const subject = req.headers.get("subject");
 
-						const resolvedHandlers = handlersContainer.get().implementations;
+						if (!subject) {
+							return new Response("Missing subject", { status: 400 });
+						}
 
-						const subject = req.headers.get("subject") as
-							| keyof typeof resolvedHandlers
-							| undefined;
-						if (!subject || !resolvedHandlers[subject]) {
+						if (!resolvedHandlers.implementations[subject]) {
 							return new Response("Invalid subject", { status: 400 });
 						}
 
-						const handler = resolvedHandlers[subject].handler;
-						const validator = actions[subject].input;
+						const routeCaller = createRouteCaller(
+							resolvedHandlers,
+							// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+							subject as any,
+							bunRequestHandler,
+						);
 
-						let param: unknown = undefined;
-						if (!req.body || req.body.length === 0) {
-							param = await validateInput(validator, undefined);
-						} else {
-							param = await req.json();
-							param = await validateInput(validator, param as never);
-						}
+						const routeContext = createBunContext(req);
 
-						const response = await handler(param as never, context);
+						const response = await routeCaller(routeContext);
 						return response
 							? Response.json(response)
 							: new Response(null, { status: 204 });
@@ -54,6 +46,7 @@ const startServer = resource(
 				},
 			},
 			error: (error) => {
+				console.error(error);
 				return new Response(error.message, { status: 500 });
 			},
 		});
@@ -61,7 +54,6 @@ const startServer = resource(
 		return [
 			server,
 			async () => {
-				console.log("shutting down server");
 				await server.stop();
 				server.unref();
 			},
@@ -72,5 +64,10 @@ const startServer = resource(
 await resolve(scope, startServer);
 
 process.on("SIGINT", async () => {
+	await scope.dispose();
+});
+
+process.on("unhandledRejection", async (reason) => {
+	console.error("Unhandled rejection:", reason);
 	await scope.dispose();
 });

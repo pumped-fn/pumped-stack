@@ -29,6 +29,6 @@
 		"zod": "^3.24.2"
 	},
 	"scripts": {
-		"dev": "NODE_ENV=dev bun run --watch main.ts"
+		"dev": "NODE_ENV=dev bun run main.ts"
 	}
 }

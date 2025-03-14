@@ -18,10 +18,10 @@ const create = implement(
 	actions,
 	"create.user",
 	[http.method("POST")],
-	provide(getConnection, async (getConnection) => async (param) => {
+	provide(getConnection, async (getConnection) => async ({ data }) => {
 		const db = await getConnection();
 
-		await db.insert(identity).values(param);
+		await db.insert(identity).values(data);
 	}),
 );
 
