@@ -15,6 +15,7 @@
 		"@libsql/client": "^0.14.0",
 		"@paralleldrive/cuid2": "^2.2.2",
 		"@pumped-fn/core": "^0.5.8",
+		"@pumped-fn/extra": "0.5.3",
 		"@pumped-fn/react": "^0.5.6",
 		"@standard-schema/spec": "^1.0.0",
 		"@types/dockerode": "^3.3.35",

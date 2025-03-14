@@ -3,10 +3,10 @@ import {
 	buildClient,
 	clientProvider,
 	defineRequestBuilder,
-} from "../extra/client";
+} from "@pumped-fn/extra/client";
 
 import { up } from "up-fetch";
-import { validateInput } from "../extra";
+import { validateInput } from "@pumped-fn/extra";
 
 const fetcher = up(fetch, () => ({
 	baseUrl: "/rpc",

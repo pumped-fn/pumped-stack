@@ -7,6 +7,7 @@
         "@libsql/client": "^0.14.0",
         "@paralleldrive/cuid2": "^2.2.2",
         "@pumped-fn/core": "^0.5.8",
+        "@pumped-fn/extra": "0.5.3",
         "@pumped-fn/react": "^0.5.6",
         "@standard-schema/spec": "^1.0.0",
         "@types/dockerode": "^3.3.35",
@@ -144,6 +145,8 @@
     "@protobufjs/utf8": ["@protobufjs/utf8@1.1.0", "", {}, "sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw=="],
 
     "@pumped-fn/core": ["@pumped-fn/core@0.5.8", "", {}, "sha512-Um3K0YYzGk0kEHAGEZTndfMjteZvdDHkJHL3ypRIsPr7/Mv4av9CM2waKLJt89C6kmM14VySJwK63jhtFfxtNQ=="],
+
+    "@pumped-fn/extra": ["@pumped-fn/extra@0.5.3", "", { "peerDependencies": { "@pumped-fn/core": "^0.5.8", "zod": "^3.24.2" } }, "sha512-FiMqAWSJcMxTBYyRvPUhdEdVUwE08ws48MrzLHjABcKn5IR5tJL42/CBEfmZzpMat/+vOq4RSHCE/k779hEFtg=="],
 
     "@pumped-fn/react": ["@pumped-fn/react@0.5.6", "", { "peerDependencies": { "@pumped-fn/core": "^0.5.8", "react": "^18.0.0" } }, "sha512-Y5e0Dk18Ewj7NMsFUbjdfwJwVVNdC0pUMomYnn+MQzSXEVU8ojCfVX85EZL6Y6EWVePo9BqV2cHNnNCiIVid3Q=="],
 

@@ -1,10 +1,10 @@
 import { createScope, resource, resolve, resolveOnce } from "@pumped-fn/core";
 import { serve } from "bun";
 import { handlers } from "./be";
-import { bunRequestHandler, toBunHandlers } from "./extra/bun";
+import { bunRequestHandler, toBunHandlers } from "@pumped-fn/extra/bun";
 import App from "./fe/index.html";
-import { createBunContext } from "./extra/bun";
-import { createRouteCaller } from "./extra/server";
+import { createBunContext } from "@pumped-fn/extra/bun";
+import { createRouteCaller } from "@pumped-fn/extra/server";
 
 const scope = createScope();
 const startServer = resource(
@@ -15,6 +15,7 @@ const startServer = resource(
 			development: process.env.NODE_ENV !== "prod",
 			routes: {
 				"/*": App,
+				...bunHandlers,
 				"/rpc": {
 					POST: async (req) => {
 						const resolvedHandlers = await resolveOnce(scope, handlers);

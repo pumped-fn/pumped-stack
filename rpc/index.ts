@@ -1,8 +1,6 @@
-import { api, service } from "../extra";
+import { api, service } from "@pumped-fn/extra";
 import { z } from "zod";
 import type { Identity } from "../drizzle/types";
-
-console.log("rpc");
 
 export const actions = service({
 	hello: api({
@@ -16,12 +14,5 @@ export const actions = service({
 	"create.user": api({
 		input: z.object({ username: z.string() }),
 		output: z.void(),
-	}),
-});
-
-export const testHttp = service({
-	ping: api({
-		input: z.undefined(),
-		output: z.string(),
 	}),
 });

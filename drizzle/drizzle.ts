@@ -1,5 +1,5 @@
 import { provide, resource } from "@pumped-fn/core";
-import { zod, drizzle, bunSqlite, bun, path, drizzleMigrate } from "../deps";
+import { zod, drizzle, bunSqlite, path, drizzleMigrate } from "../be/deps";
 import type { BunSQLiteDatabase } from "drizzle-orm/bun-sqlite";
 import type { Database } from "bun:sqlite";
 
