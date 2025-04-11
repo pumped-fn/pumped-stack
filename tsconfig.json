@@ -25,5 +25,5 @@
 		"noUnusedParameters": false,
 		"noPropertyAccessFromIndexSignature": false
 	},
-	"include": ["be/*.ts", "fe/*.ts", "fe/*.tsx"]
+	"include": ["be/*.ts", "fe/*.ts", "fe/*.tsx", "extra/*.ts"]
 }

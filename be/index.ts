@@ -1,40 +1,37 @@
-import { provide } from "@pumped-fn/core";
-import { http } from "@pumped-fn/extra/meta/http";
-import { implement, route } from "@pumped-fn/extra/server";
-import { getConnection } from "../drizzle/drizzle";
+import { provide, any } from "@pumped-fn/core";
+import { impl } from "@pumped-fn/extra";
+import { getConnection } from "./drizzle";
 import { identity } from "../drizzle/schema";
 import { actions } from "../rpc";
+import { httpMeta } from "../extra/http"
+import type { BunRequest } from "bun";
 
-const get = implement(
-	actions,
-	"get.users",
-	provide(getConnection, async (getConnection) => async () => {
-		const db = await getConnection();
-		return db.select().from(identity);
-	}),
+const bunRequest = any<BunRequest<string>>()
+
+const get = impl.api(
+  actions,
+  "get.users",
+  bunRequest,
+  provide(getConnection, async (db) => async () => {
+    return db.select().from(identity);
+  }),
 );
 
-const create = implement(
-	actions,
-	"create.user",
-	[http.method("POST")],
-	provide(getConnection, async (getConnection) => async ({ data }) => {
-		const db = await getConnection();
-
-		await db.insert(identity).values(data);
-	}),
+const create = impl.api(
+  actions,
+  "create.user",
+  bunRequest,
+  provide(getConnection, async (db) => async (_, data) => {
+    await db.insert(identity).values(data);
+  }),
+  httpMeta({ method: 'POST' })
 );
 
-export const handlers = route(
-	actions,
-	{
-		hello: implement(
-			actions,
-			"hello",
-			provide(() => () => "hello"),
-		),
-		"get.users": get,
-		"create.user": create,
-	},
-	http.prefix("/rpc"),
+const hello = impl.api(
+  actions,
+  "hello",
+  bunRequest,
+  provide(() => () => "hello")
 );
+
+export const routes = [get, create, hello];

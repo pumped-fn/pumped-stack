@@ -1,8 +1,9 @@
-import { ScopeProvider, useReset, useResolveMany } from "@pumped-fn/react";
+import { ScopeProvider, useReset, useResolve, useResolveMany } from "@pumped-fn/react";
 import { Suspense } from "react";
 import { store } from "./store.pumped";
-import { client } from "./client";
-import { provide, mutable, ref } from "@pumped-fn/core";
+import { caller } from "./client";
+import { provide, mutable } from "@pumped-fn/core";
+import { appPumped } from "./app.pumped";
 
 export function App() {
 	return (
@@ -17,19 +18,34 @@ export function App() {
 }
 
 function AppInner() {
-	const [identities, polling] = useResolveMany(store.identities, store.polling);
+	const [identities, polling, setSelectedTodo] = useResolveMany(
+		store.identities,
+		store.polling,
+		appPumped.setSelectedTodo,
+	);
 	return (
 		<>
 			<AddUserForm />
 			{identities.map((identity) => (
-				<div key={identity.id}>{identity.username}</div>
+				// biome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
+				<div
+					key={identity.id}
+					onClick={() => {
+						setSelectedTodo(identity);
+					}}
+				>
+					{identity.username}
+				</div>
 			))}
+			<h2>Current user</h2>
+			<hr />
+			<SelectedUser />
 		</>
 	);
 }
 
 const userForm = mutable(() => ({ username: "" }));
-const updateForm = provide([ref(userForm)], ([ref], scope) => {
+const updateForm = provide(userForm.ref, (ref, scope) => {
 	return {
 		setUsername: (username: string) => {
 			scope.update(ref, () => ({ username }));
@@ -44,7 +60,7 @@ function AddUserForm() {
 		form.userForm,
 		form.updateForm,
 		store.requestUpdate,
-		client,
+		caller,
 	);
 	const resetForm = useReset(form.userForm);
 
@@ -65,5 +81,23 @@ function AddUserForm() {
 			/>
 			<button type="submit">Add</button>
 		</form>
+	);
+}
+
+function SelectedUser() {
+	const [selectedUser, setSelectedTodo] = useResolveMany(
+		appPumped.selectedTodo,
+		appPumped.setSelectedTodo,
+	);
+
+	return (
+		<>
+			<div>{selectedUser ? selectedUser.username : "No user selected"}</div>
+			<div>
+				<button type="button" onClick={() => setSelectedTodo(undefined)}>
+					Clear
+				</button>
+			</div>
+		</>
 	);
 }
