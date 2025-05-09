@@ -1,29 +1,29 @@
-import { effect, mutable, provide } from "@pumped-fn/core";
+import { derive } from "@pumped-fn/core-next";
 import { caller } from "./client";
 
-const identities = mutable([caller], async ([caller]) => {
+const identities = derive([caller], async ([caller]) => {
   const users = await caller("get.users");
   return users;
 });
 
-const polling = effect(
-  [identities.ref, caller],
-  async ([ref, caller], scope) => {
+const polling = derive(
+  [identities.static, caller],
+  async ([ref, caller]) => {
     const interval = setInterval(async () => {
       const users = await caller("get.users");
-      scope.update(ref, () => users);
+      ref.update(users);
     }, 10000);
 
     return () => clearInterval(interval);
   },
 );
 
-const requestUpdate = provide(
-  [identities.ref, caller],
-  async ([ref, caller], scope) => {
+const requestUpdate = derive(
+  [identities.static, caller],
+  async ([ref, caller]) => {
     return async () => {
       const users = await caller("get.users");
-      scope.update(ref, () => users);
+      ref.update(users);
     };
   },
 );

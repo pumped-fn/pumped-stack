@@ -1,11 +1,9 @@
-import { createScope, resolveOnce } from "@pumped-fn/core";
-import { routes } from "./be/"
-import { createServer } from "./extra/bunserver"
+import { createScope } from "@pumped-fn/core-next";
+import { app } from "./be/cmd"
 
 const scope = createScope();
 
-const bunServer = createServer(routes)
-await resolveOnce(scope, bunServer)
+await scope.resolve(app)
 
 process.on("SIGINT", async () => {
   await scope.dispose();

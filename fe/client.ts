@@ -4,7 +4,7 @@ import {
 } from "@pumped-fn/extra";
 
 import { up } from "up-fetch";
-import { validateInput } from "@pumped-fn/core";
+import { validate } from "@pumped-fn/core-next";
 
 const fetcher = up(fetch, () => ({
   baseUrl: "/rpc",
@@ -22,7 +22,7 @@ const upfetchRequestBuilder = client.createAnyRequestHandler(
       throw new Error(`Unknown path: ${path}`);
     }
 
-    const validatedParam = await validateInput(def.input, params);
+    const validatedParam = validate(def.input, params);
     console.log("request", path, def, params, validatedParam);
     const response = await fetcher("", {
       body: validatedParam ?? undefined,
@@ -35,7 +35,7 @@ const upfetchRequestBuilder = client.createAnyRequestHandler(
       return;
     }
 
-    const validatedResponse = await validateInput(def.output, response);
+    const validatedResponse = validate(def.output, response);
     return validatedResponse;
   },
 );

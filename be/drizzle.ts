@@ -1,11 +1,10 @@
-import { executionValue, provide, resource } from "@pumped-fn/core";
+import { derive } from "@pumped-fn/core-next";
 import { zod, drizzle, bunSqlite, path, drizzleMigrate } from "./deps";
 import type { BunSQLiteDatabase } from "drizzle-orm/bun-sqlite";
 import type { Database } from "bun:sqlite";
 import { logger } from "./exec";
-import { z } from "zod";
 
-const dbConfig = provide([zod], async ([zod]) => {
+const dbConfig = derive([zod], async ([zod]) => {
   return zod
     .object({
       dbDir: zod.string(),
@@ -17,27 +16,25 @@ const dbConfig = provide([zod], async ([zod]) => {
     });
 });
 
-const connectionPool = resource(dbConfig, () => {
+const connectionPool = derive(dbConfig, (config, controller) => {
+
   const pool = new Map<string, [BunSQLiteDatabase, Database]>();
 
-  return [
-    pool,
-    async () => {
-      for (const [_, db] of pool.values()) {
-        db.close();
-      }
-
-      pool.clear();
+  controller.cleanup(() => {
+    for (const [_, db] of pool.values()) {
+      db.close();
     }
-  ]
+
+    pool.clear();
+  })
+
+  return pool
 })
 
-export const connectionId = executionValue('dbId', z.string())
-
-export const getConnection = provide(
-  [connectionId.finder, drizzleMigrate, drizzle, bunSqlite, path, dbConfig, logger('connection'), connectionPool],
-  async ([connectionId, drizzleMigrate, drizzle, bunSqlite, path, dbConfig, logger, connectionPool]) => {
-    const id = connectionId || dbConfig.defaultDbName
+export const getConnection = derive(
+  [drizzleMigrate, drizzle, bunSqlite, path, dbConfig, logger('connection'), connectionPool] as const,
+  async ([drizzleMigrate, drizzle, bunSqlite, path, dbConfig, logger, connectionPool]) => {
+    const id = dbConfig.defaultDbName
 
     if (connectionPool.has(id)) {
       // biome-ignore lint/style/noNonNullAssertion: <explanation>
@@ -54,6 +51,7 @@ export const getConnection = provide(
         },
       }
     });
+
     drizzleMigrate.migrate(connection, { migrationsFolder: "./drizzle" });
 
     connectionPool.set(id, [connection, db]);

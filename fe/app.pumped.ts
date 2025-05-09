@@ -1,11 +1,11 @@
-import { mvalue, provide } from "@pumped-fn/core"
+import { derive, provide } from "@pumped-fn/core-next"
 import type { Identity } from "../drizzle/types"
 
-const selectedTodo = mvalue(undefined as Identity | undefined)
+const selectedTodo = provide(() => undefined as Identity | undefined)
 
-const setSelectedTodo = provide(selectedTodo.ref, (ref, scope) => {
+const setSelectedTodo = derive(selectedTodo.static, (selectedTodo) => {
   return (todo: Identity | undefined) => {
-    return scope.update(ref, todo)
+    return selectedTodo.update(todo)
   }
 })
 

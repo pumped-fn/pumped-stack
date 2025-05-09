@@ -1,4 +1,4 @@
-import { provide } from "@pumped-fn/core";
+import { provide } from "@pumped-fn/core-next";
 
 export const zod = provide(async () => {
   return await import("zod");

@@ -1,4 +1,4 @@
-import { meta, type InferMeta, type MetaFn } from "@pumped-fn/core"
+import { meta, type Meta } from "@pumped-fn/core-next"
 import { z } from "zod"
 
 const httpDefSchema = z.object({
@@ -8,4 +8,4 @@ const httpDefSchema = z.object({
 })
 
 export const httpMeta = meta(Symbol('http'), httpDefSchema)
-export type HttpMeta = typeof httpMeta extends MetaFn<infer T> ? T : never
+export type HttpMeta = typeof httpMeta extends Meta.Meta<infer T> ? T : never

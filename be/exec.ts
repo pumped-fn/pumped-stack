@@ -1,19 +1,8 @@
-import { executionValue, provide, reactive } from "@pumped-fn/core";
-import type { BunRequest } from "bun";
-import { z } from "zod";
+import { provide } from "@pumped-fn/core-next";
 
-export const requestId = executionValue("requestId", z.string());
-
-export const bunRequest = executionValue("bunRequest", z.custom<BunRequest<string>>())
-
-export const logger = (name: string) => reactive(
-  requestId.finder,
-  (requestId) => {
+export const logger = (name: string) => provide(
+  () => {
     return (...messages: unknown[]) => {
-      if (requestId.get()) {
-        console.log(`[${requestId.get()}.${name}]`, ...messages);
-      } else {
-        console.log(`[${name}]`, ...messages);
-      }
+      console.log(`[${name}]`, ...messages);
     }
   })
