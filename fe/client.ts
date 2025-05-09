@@ -7,7 +7,7 @@ import { up } from "up-fetch";
 import { validate } from "@pumped-fn/core-next";
 
 const fetcher = up(fetch, () => ({
-  baseUrl: "/rpc",
+  baseUrl: "/api",
   method: "POST",
   headers: {
     "Content-Type": "application/json",
@@ -24,7 +24,7 @@ const upfetchRequestBuilder = client.createAnyRequestHandler(
 
     const validatedParam = validate(def.input, params);
     console.log("request", path, def, params, validatedParam);
-    const response = await fetcher("", {
+    const response = await fetcher(path, {
       body: validatedParam ?? undefined,
       headers: {
         subject: path,

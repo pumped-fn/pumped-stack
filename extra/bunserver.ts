@@ -2,8 +2,9 @@ import { custom, derive, provide, validate, type Core, type Meta } from "@pumped
 import type { Def, Impl } from "@pumped-fn/extra"
 import { type BunRequest, type RouterTypes, serve } from "bun"
 import { httpMeta } from "./http"
+import html from "../fe/index.html"
 
-const defaultHttpMeta = httpMeta.partial({ method: "GET", prefix: "/api" })
+const defaultHttpMeta = httpMeta.partial({ method: "POST", prefix: "/api" })
 export const bunRequest = custom<BunRequest<string>>()
 
 export const createServer = <K extends Core.Executor<Impl.API<any, any, BunRequest>>[]>(
@@ -59,7 +60,10 @@ export const createServer = <K extends Core.Executor<Impl.API<any, any, BunReque
 
       const server = serve({
         port: config.port,
-        routes: bunRoutes
+        routes: {
+          ...bunRoutes,
+          "/": html
+        }
       })
 
       controller.cleanup(() => {
